@@ -1,0 +1,25 @@
+.page{
+    background-color: #ecedf3;
+    color: #2C3345;
+    width: 752px;
+}
+.pageLabel{
+  font-family: 'Inter', sans-serif;
+   font-size: 16px;
+   font-weight: 500;
+   color: #2C3345;
+}
+.pageTitle{
+    text-decoration: underline;
+    font-weight: 400;
+}
+.form-logo {
+  height: 40px;
+  width: auto;
+}
+
+.form-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+}

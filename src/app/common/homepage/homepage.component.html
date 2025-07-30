@@ -1,0 +1,65 @@
+<!-- 
+<div class="container mt-4">
+  <h3 class="mb-3 text-center">Location List</h3>
+  
+  <ul class="list-group">
+    <li *ngFor="let location of locations"  class="list-group-item list-group-item-action" (click)="selectLocation(location)">
+      {{ location }}
+    </li>
+  </ul>
+</div> -->
+
+
+<!-- <div class="container-fluid">
+  <div class="row min-vh-100">
+
+    <div class="col-md-3 p-4">
+      <h5>📍 Locations</h5>
+      <ul class="list-unstyled">
+        <li *ngFor="let loc of locations" (click)="selectLocation(loc)" class="py-2 location-item">
+          {{ loc }}
+        </li>
+      </ul>
+    </div>
+    <div class="col-md-9 p-0">
+      <img src="../../../assets/vector.jpeg" class="img-fluid w-100 h-100 object-fit-cover" alt="Home Image">
+    </div>
+
+  </div>
+</div> -->
+
+
+  <!-- <ul class="list-unstyled text-white">
+        <li *ngFor="let loc of locations" (click)="selectLocation(loc)" class="py-2 location-item">
+        📍 {{ loc }}
+        </li>
+      </ul> -->
+      <!-- <div class="row row-cols-1 row-cols-md-3 g-4">
+  <div class="col">
+    <div class="card" *ngFor="let loc of locations" (click)="selectLocation(loc)">
+      <img src="..." class="card-img-top" alt="...">
+      <div class="card-body">
+        <h5 class="card-title"> 📍 {{ loc }}</h5>
+        <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div> -->
+<div class="container py-4 responsive-bg">
+  <h3 class="text-center text-white mb-4">Locations Details</h3>
+
+  <div class="row">
+    <div class="col-12 col-sm-6 col-md-4 mb-4" *ngFor="let loc of locations" (click)="selectLocation(loc)">
+      <div class="card h-100 shadow-sm text-center p-3">
+        <h5>{{ loc }}</h5>
+        <!-- <p class="text-muted">{{ loc.description }}</p> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+

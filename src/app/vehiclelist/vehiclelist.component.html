@@ -1,0 +1,36 @@
+
+<div class="container mt-4">
+  <h4 class="text-center mb-3">{{this.location}} Survey</h4>
+
+  <div class="table-responsive">
+    <table class="table table-borderless table-striped">
+      <thead class="thead-light">
+        <tr>
+          <th scope="col">Sr.No</th>
+          <th>Vehicle No</th>
+          <th>E No</th>
+          <th>Survey Date</th>
+          <th>RI Date</th>
+          <th>Progress</th>
+          <th>Location</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let vehicle of ByLocationList; let i=index;">
+          <td>{{i+1}}</td>
+          <td>{{ vehicle.vehicleNo }}</td>
+          <td>{{ vehicle.eNo }}</td>
+          <td>{{ vehicle.surveyDate | date:'dd-MM-yyyy' }}</td>
+          <td>{{ vehicle.riDate | date:'dd-MM-yyyy' }}</td>
+          <td>{{ vehicle.riDate == null ? 'Pending' : 'Completed' }}</td>
+          <td>{{ vehicle.location }}</td>
+            <td>
+             <i class="fas fa-edit text-primary me-3" style="cursor: pointer;" (click)="editRecord()"></i>
+            <i class="fas fa-trash-alt text-danger" style="cursor: pointer;" (click)="deleteRecord()"></i>
+            </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
