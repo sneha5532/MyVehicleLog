@@ -8,7 +8,7 @@ const vehicleModel = require('../model/vehicle.model');
 
 router.get('/vehicle-list', async function (req, res) {
   try {
-    const vehicleList = await vehicleModel.find(); // no callback here
+    const vehicleList = await vehicleModel.find();
     const recordCount = vehicleList.length;
 
     res.status(200).send({
@@ -58,13 +58,29 @@ router.post('/add-vehicle',async function(req,res){
 
 router.get('/location-vehicle', async (req, res) => {
   const location = req.query.location;
+  const search = req.query.search || '';
+  const page = parseInt(req.query.page) || 1; // Default to page 1
+  const limit = parseInt(req.query.limit) || 10; // Default to 10 per page
+  const skip = (page - 1) * limit;
 
   try {
-    const vehicles = await vehicleModel.find({ location: location });
-    res.status(200).send({
+    let query = { location: location };
+     if (search) {
+      query.$or = [
+        { vehicleNo: { $regex: search, $options: 'i' } },
+        { eNo: { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } }
+      ];
+    }
+    const vehicles = await vehicleModel.find(query).skip(skip).limit(limit).exec();
+    const total = await vehicleModel.countDocuments(query);
+    res.json({
+      vehiclesLocationList: vehicles,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalRecords: total,
       status: 200,
       message: 'Location wise Vehicle list fetched successfully',
-      vehiclesLocationList: vehicles
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -142,5 +158,20 @@ res.status(200).json({
     res.status(500).json({ error: 'Upload failed' });
   }
 });
+
+
+//search
+// router.get('/search-vehicles', async (req, res) => {
+//   const search = req.query.search || '';
+//   const vehicles = await Vehicle.find({
+//     $or: [
+//       { vehicleNo: { $regex: search, $options: 'i' } },
+//        { eNo: { $regex: search, $options: 'i' } },
+//       { location: { $regex: search, $options: 'i' } }
+//     ]
+//   });
+//   res.json(vehicles);
+// });
+
 
 module.exports = router;

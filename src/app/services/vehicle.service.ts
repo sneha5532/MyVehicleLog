@@ -4,37 +4,48 @@ import { environment } from '../../environments/environment.dev';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-
 export class VehicleService {
-    private selectedLocationSource = new BehaviorSubject<string>('');
-    selectedLocation$ = this.selectedLocationSource.asObservable();
+  private selectedLocationSource = new BehaviorSubject<string>('');
+  selectedLocation$ = this.selectedLocationSource.asObservable();
 
- constructor(private http:HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  getVehicleList(){
-    let url = environment.Vehicle_base_url + environment.Vehicle.All_Vehicle_List;
-    return this.http.get<{ result: any[] }>(url)
+  getVehicleList() {
+    let url =
+      environment.Vehicle_base_url + environment.Vehicle.All_Vehicle_List;
+    return this.http.get<{ result: any[] }>(url);
   }
 
-  addVehicle(data:any){
+  addVehicle(data: any) {
     let url = environment.Vehicle_base_url + environment.Vehicle.Add_Vehicle;
-      return this.http.post(url,data)
+    return this.http.post(url, data);
   }
 
-getVehiclesByLocation(location: string) {
-   let url = environment.Vehicle_base_url + environment.Vehicle.Location;
-  return this.http.get<{vehiclesLocationList:any[]}>(url+`?location=${location}`);
-}
+  getVehiclesByLocation(location: string, page: number, limit: number, search: string = '') {
+    let url = environment.Vehicle_base_url + environment.Vehicle.Location;
+    return this.http.get<any>(
+      url + `?location=${location}&page=${page}&limit=${limit}&search=${search}`
+    );
+  }
 
   setLocation(location: string) {
     this.selectedLocationSource.next(location);
   }
 
-  geExcelData(data:any){
-     let url = environment.Vehicle_base_url + environment.Vehicle.ExcelData;
-     return this.http.post(url,data);
+  geExcelData(data: any) {
+    let url = environment.Vehicle_base_url + environment.Vehicle.ExcelData;
+    return this.http.post(url, data);
   }
 
+  updateVehicle(id: string, data: any) {
+    let url = environment.Vehicle_base_url + environment.Vehicle.Update_Vehicle;
+    return this.http.put(url + `${id}`, data);
+  }
+
+  searchVehicle(term: any){
+     let url = environment.Vehicle_base_url + environment.Vehicle.Search_Vehicle;
+    return this.http.get(url + `?search=${term}`);
+  }
 }

@@ -9,7 +9,7 @@ const routes: Routes = [
   {path: 'homePage', component: HomepageComponent},
   {path: 'vehicleRegstration', component: VehicleRegistrationComponent},
   {path: 'vehicleList', component: VehiclelistComponent},
-  {path: 'vehicleList/:id', component: VehiclelistComponent}
+  {path: 'vehicle-update/:id', component: VehicleRegistrationComponent}
   // {path: '404', component: PageNotfoundComponent},
   // {path: '**', redirectTo: '/404'}
 ];

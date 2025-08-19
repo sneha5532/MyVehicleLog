@@ -6,10 +6,10 @@
       All_Vehicle_List: 'vehicle-list',
       Add_Vehicle: 'add-vehicle',
       Location: 'location-vehicle',
-      ExcelData: 'upload-excel'
-      // Update_Vehicle: 'update-Vehicle',
+      ExcelData: 'upload-excel',
+      Update_Vehicle: 'update-vehicle',
       // Delete_Vehicle: 'delete-Vehicle',
-      // Search_Vehicle: 'search/'
+      Search_Vehicle: 'search-vehicles'
      }
    
 }
