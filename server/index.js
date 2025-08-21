@@ -16,14 +16,14 @@ app.use(cors());
 app.use(express.json());
 
 // 👇 Serve Angular build
-app.use(express.static(path.join(__dirname, 'dist/my-vehicle-log')));
+app.use(express.static(path.join(__dirname, '../server/dist/my-vehicle-log')));
 
 // API routes
 app.use('/vehicle', vehicleRouter);
 
 // 👇 Catch-all route to Angular index.html
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist/my-vehicle-log/index.html'));
+    res.sendFile(path.join(__dirname, '../server/dist/my-vehicle-log/index.html'));
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
