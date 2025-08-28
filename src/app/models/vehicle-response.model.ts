@@ -1,8 +1,6 @@
 export interface VehicleResponse {
-data: {
-    vehiclesLocationList: any[];
+    result: any[];
     currentPage?: number;
     totalPages?: number;
     totalRecords?: number;
-  };
 }

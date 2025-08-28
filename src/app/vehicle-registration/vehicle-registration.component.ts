@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { VehicleService } from '../services/vehicle.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-vehicle-registration',
@@ -15,24 +15,57 @@ export class VehicleRegistrationComponent implements OnInit {
     eNo: '',
     surveyDate: '',
     riDate: '',
+    status: '',
     location: ''
   }
 locationList:any =[];
 uploadMessage: string | null = null;
 isError: boolean = false;
+isEdit = false;
+statusList: any = ["completed", "pending"];
+id: number|any
 
-  constructor(private service:VehicleService, private router: Router) {
+  constructor(private service:VehicleService, private router: Router,private route: ActivatedRoute) {
   }
 
   ngOnInit(): void {
     this.getLocation();
+      this.id = this.route.snapshot.paramMap.get('id');
+    if (this.id) {
+      this.isEdit = true;
+      this.loadVehicle(this.id);
+    }
   }
+
+  private formatDate(dateString: string): string {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  // pad month/day with leading zero
+  const month = ('0' + (d.getMonth() + 1)).slice(-2);
+  const day = ('0' + d.getDate()).slice(-2);
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
+    loadVehicle(id: string) {
+        this.service.getVehicleList().subscribe((res: any) => {
+          const vehicle = res.result.find((v: any) => v._id === id);
+          if (vehicle) {
+            this.registrationForm.patchValue({
+    ...vehicle,
+    surveyDate: this.formatDate(vehicle.surveyDate),
+    riDate: this.formatDate(vehicle.riDate)
+  });
+          }
+        });
+  }
+
 
     registrationForm = new FormGroup({
       vehicleNo: new FormControl('',[Validators.required]),
       eNo: new FormControl('',[]),
       surveyDate: new FormControl('',[Validators.required]),
       riDate: new FormControl('',[]),
+      status: new FormControl('',[]),
       location: new FormControl('',[Validators.required]),
     });
 
@@ -43,16 +76,17 @@ isError: boolean = false;
   getLocation(){
     this.service.getVehicleList().subscribe((res)=>{
         this.locationList = [...new Set(res.result.map((vehicle: any) => vehicle.location))];
-        console.log(this.locationList);
     })
   }
 
   onSubmit() {
-      if(this.registrationForm.invalid){
-      console.log("registrationForm details are invalid");
+      if (this.isEdit) {
+     this.service.updateVehicle(this.id,this.registrationForm.value).subscribe((result)=>{
+        this.registrationForm.reset();
+        this.router.navigate(['/homePage']);
+      })
     }else{
       this.service.addVehicle(this.registrationForm.value).subscribe((result)=>{
-        // console.log(result)
         this.registrationForm.reset();
         this.router.navigate(['/homePage']);
       })
