@@ -1,18 +1,25 @@
-.page{
-    background-color: #ecedf3;
-    color: #2C3345;
-    width: 752px;
+.page {
+  background-color: #ecedf3;
+  color: #2C3345;
+  max-width: 900px;   /* wider for laptop screens */
+  width: 100%;        /* takes full width on smaller screens */
+  margin: auto;       /* centers the form */
+  border-radius: 8px;
+  padding: 20px;
 }
-.pageLabel{
+
+.pageLabel {
   font-family: 'Inter', sans-serif;
-   font-size: 16px;
-   font-weight: 500;
-   color: #2C3345;
+  font-size: 16px;
+  font-weight: 500;
+  color: #2C3345;
 }
-.pageTitle{
-    text-decoration: underline;
-    font-weight: 400;
+
+.pageTitle {
+  text-decoration: underline;
+  font-weight: 400;
 }
+
 .form-logo {
   height: 40px;
   width: auto;
@@ -22,4 +29,32 @@
   font-family: 'Inter', sans-serif;
   font-size: 24px;
   font-weight: 600;
+}
+
+button[type="submit"] {
+  display: block;      /* makes it behave like a block element */
+  margin: 10px auto;   /* centers it horizontally */
+  width: 400px;
+}
+
+
+/* ✅ Responsive Fix */
+@media (max-width: 1024px) { /* Laptops/Tablets */
+  .page {
+    max-width: 95%;   /* shrink width so button is visible */
+    padding: 15px;
+  }
+}
+
+@media (max-width: 768px) { /* Mobiles */
+  .pageTitle {
+    font-size: 18px;
+  }
+  .form-logo {
+    height: 30px;
+  }
+  button[type="submit"] {
+    font-size: 16px;
+    padding: 10px;
+  }
 }

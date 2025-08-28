@@ -10,6 +10,7 @@ const vehicleSchema = mongoose.Schema({
   eNo: { type: String, default: null },
   surveyDate: { type: Date, required: true },
   riDate: { type: Date, default: null },
+  status: { type: String, default: 'Unknown' },
   location: { type: String, default: 'Unknown' }
 });
 

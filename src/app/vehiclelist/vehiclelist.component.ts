@@ -7,81 +7,117 @@ import html2canvas from 'html2canvas';
 @Component({
   selector: 'app-vehiclelist',
   templateUrl: './vehiclelist.component.html',
-  styleUrls: ['./vehiclelist.component.css']
+  styleUrls: ['./vehiclelist.component.css'],
 })
 export class VehiclelistComponent implements OnInit {
-@ViewChild('tableContainer', { static: false }) tableContainer!: ElementRef;
+  @ViewChild('tableContainer', { static: false }) tableContainer!: ElementRef;
 
-location = '';
-ByLocationList: any[] = [];
-surveyProgress: string | undefined;
-sortColumn: string = '';
-sortDirection: 'asc' | 'desc' = 'asc';
-isEditMode: boolean = false;
-currentPage = 1;
-totalPages = 0;
-pageSize = 10;
-searchText: any = '';
+  location = '';
+  VehicleLists: any[] = [];
+  getAllVehicleList: any[] = [];
+  surveyProgress: string | undefined;
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  isEditMode: boolean = false;
+  currentPage = 1;
+  totalPages: number | undefined = 0;
+  pageSize = 10;
+  searchText: any = '';
 
-  constructor(private Service : VehicleService,private router : Router) {}
+  constructor(private Service: VehicleService, private router: Router) {}
 
-ngOnInit() {
-   this.getLocation();
-   this.LocationWiseList(1);
-}
-
-getLocation(){
- this.Service.selectedLocation$.subscribe(loc=>{
-    this.location = loc;
-  })
-}
-  
-LocationWiseList(currentPage:any){
-    const search = (this.searchText?.trim().toLowerCase() === 'pending') ? '' : this.searchText;
-   this.Service.getVehiclesByLocation(this.location,currentPage,this.pageSize,search).subscribe((data)=>{
-      let list = data.vehiclesLocationList;
-
-    // Show only pending records when search text is entered
-    if (this.searchText?.trim().toLowerCase() === 'pending') {
-      list = list.filter((vehicle: any) => !vehicle.riDate);
+  ngOnInit() {
+    this.getLocation();
+    if (this.location) {
+      this.LocationWiseList(1);
+    } else {
+      this.AllVehicleList(1);
     }
-
-    this.ByLocationList = list;
-      this.totalPages = data.totalPages;
-    })
-}
-
-
-  changePage(page: number) {
-    if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
-    this.LocationWiseList(this.currentPage);
   }
 
-// nextPage() {
-//   if (this.currentPage < this.totalPages) {
-//     this.LocationWiseList(this.currentPage + 1);
-//   }
-// }
+  getLocation() {
+    this.Service.selectedLocation$.subscribe((loc) => {
+      this.location = loc;
+      localStorage.setItem('vehicleData', JSON.stringify(this.location));
+    });
+  }
 
-// prevPage() {
-//   debugger
-//   if (this.currentPage > 1) {
-//     this.LocationWiseList(this.currentPage - 1);
-//   }
-// }
+  onSearch() {
+    if (this.location) {
+      this.LocationWiseList(1);
+    } else {
+      this.AllVehicleList(1);
+    }
+  }
 
-editRecord(vehicle:any){
-  let data = vehicle;
-  console.log("data",data)
-   this.router.navigate(['/vehicle-update/:id']);
-}
+  LocationWiseList(currentPage: any) {
+    this.Service.getVehiclesByLocation(
+      this.location,
+      currentPage,
+      this.pageSize,
+      this.searchText
+    ).subscribe((data) => {
+      let list = data.vehiclesLocationList;
 
-deleteRecord(){
+      // Show only pending records when search text is entered
+      if (this.searchText?.trim().toLowerCase() === 'pending') {
+        list = list.filter(
+          (vehicle: any) => vehicle.status?.toLowerCase() === 'pending'
+        );
+      }
 
-}
+      this.VehicleLists = list;
+      this.totalPages = data.totalPages;
+    });
+  }
 
-sortData(column: string) {
+  AllVehicleList(currentPage: any) {
+    this.Service.getAllVehicleList(
+      currentPage,
+      this.pageSize,
+      this.searchText
+    ).subscribe((data: VehicleResponse) => {
+         let list = data.result;
+      if (this.searchText?.trim().toLowerCase() === 'pending') {
+        list = list.filter(
+          (vehicle: any) => vehicle.status?.toLowerCase() === 'pending'
+        );
+      }
+       this.VehicleLists = list;
+      this.totalPages = data.totalPages;
+    });
+  }
+
+  changePage(page: number) {
+    if (page < 1 || page > (this.totalPages ?? 0)) return;
+    this.currentPage = page;
+    if (this.location) {
+      this.LocationWiseList(this.currentPage);
+    } else {
+      this.AllVehicleList(this.currentPage);
+    }
+  }
+
+  editRecord(vehicle: any) {
+    this.router.navigate(['/vehicle-update', vehicle._id]);
+        console.log('data',  vehicle._id);
+  }
+
+  deleteRecord(vehicle:any) {
+    debugger
+   this.Service.deleteVehicle(vehicle._id).subscribe((res) => {
+    const savedData = localStorage.getItem('vehicleData');
+    console.log('savedData', savedData);
+    debugger
+      if (savedData && savedData !== '""') {
+        this.LocationWiseList(1);
+      } else {
+        this.AllVehicleList(1);
+      }
+   });
+  }
+
+  sortData(column: string) {
     if (this.sortColumn === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
@@ -89,7 +125,7 @@ sortData(column: string) {
       this.sortDirection = 'asc';
     }
 
-    this.ByLocationList.sort((a: any, b: any) => {
+    this.VehicleLists.sort((a: any, b: any) => {
       let valueA = a[column];
       let valueB = b[column];
 
@@ -103,8 +139,8 @@ sortData(column: string) {
     });
   }
 
-  captureImage(){
-      html2canvas(this.tableContainer.nativeElement).then(canvas => {
+  captureImage() {
+    html2canvas(this.tableContainer.nativeElement).then((canvas) => {
       const imgData = canvas.toDataURL('image/png');
 
       // Download image
@@ -115,4 +151,7 @@ sortData(column: string) {
     });
   }
 
+  ngOnDestroy(): void {
+  localStorage.removeItem('vehicleData');
+}
 }

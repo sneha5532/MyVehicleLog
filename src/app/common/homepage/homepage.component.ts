@@ -16,7 +16,6 @@ export class HomepageComponent implements OnInit {
   ngOnInit() {
     this.Service.getVehicleList().subscribe((data) => {
          this.locations = [...new Set(data.result.map((vehicle: any) => vehicle.location))];
-         console.log(this.locations)
     });
   }
 

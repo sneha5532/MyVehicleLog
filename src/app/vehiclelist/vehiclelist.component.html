@@ -1,9 +1,7 @@
 <div class="main-content">
   <div class="container mt-4">
-
     <!-- Location + Search + Capture Row -->
     <div class="row align-items-center mb-4 gy-2">
-      
       <!-- Location Name -->
       <div class="col-lg-3 col-md-4 col-sm-12 text-center text-lg-start">
         <h4 class="location-title mb-0">{{ location }} Survey</h4>
@@ -15,17 +13,22 @@
           <span class="input-group-text bg-white border-end-0">
             <i class="fas fa-search text-muted"></i>
           </span>
-          <input type="text"
-                 class="form-control search-input border-start-0"
-                 placeholder="Search vehicle..."
-                 [(ngModel)]="searchText"
-                 (input)="LocationWiseList(1)">
+          <input
+            type="text"
+            class="form-control search-input border-start-0"
+            placeholder="Search vehicle..."
+            [(ngModel)]="searchText"
+            (input)="onSearch()"
+          />
         </div>
       </div>
 
       <!-- Capture Image Button -->
       <div class="col-lg-4 col-md-3 col-sm-12 text-center text-lg-end">
-        <button class="btn btn-secondary capture-btn shadow-sm w-70 w-md-auto" (click)="captureImage()">
+        <button
+          class="btn btn-secondary capture-btn shadow-sm w-70 w-md-auto"
+          (click)="captureImage()"
+        >
           <i class="fas fa-camera me-2"></i> Capture Image
         </button>
       </div>
@@ -37,36 +40,55 @@
         <thead class="table-light">
           <tr>
             <th scope="col">Sr.No</th>
-            <th (click)="sortData('vehicleNo')" class="sortable">Vehicle No.</th>
+            <th (click)="sortData('vehicleNo')" class="sortable">
+              Vehicle No.
+            </th>
             <th>E No.</th>
-            <th (click)="sortData('surveyDate')" class="sortable">Survey Date</th>
+            <th (click)="sortData('surveyDate')" class="sortable">
+              Survey Date
+            </th>
             <th (click)="sortData('riDate')" class="sortable">RI Date</th>
-            <th>Progress</th>
+            <th>Status</th>
             <th>Location</th>
             <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let vehicle of ByLocationList; let i = index"
-              [ngClass]="!vehicle.riDate ? 'highlight-row' : ''">
+          <tr
+            *ngFor="let vehicle of VehicleLists; let i = index"
+            [ngClass]="!vehicle.riDate ? 'highlight-row' : ''"
+          >
             <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
             <td>{{ vehicle.vehicleNo }}</td>
             <td>{{ vehicle.eNo }}</td>
-            <td>{{ vehicle.surveyDate | date:'dd-MM-yyyy' }}</td>
-            <td>{{ vehicle.riDate | date:'dd-MM-yyyy' }}</td>
+            <td>{{ vehicle.surveyDate | date : "dd-MM-yyyy" }}</td>
+            <td>{{ vehicle.riDate | date : "dd-MM-yyyy" }}</td>
             <td>
+              <span
+                class="badge"
+               [class.bg-warning]="vehicle.status === 'pending'"
+              [class.bg-success]="vehicle.status === 'completed'">
+                {{ vehicle.status }}
+              </span>
+            </td>
+
+            <!-- <td>
               <span class="badge"
                     [class.bg-warning]="!vehicle.riDate"
                     [class.bg-success]="vehicle.riDate">
-                {{ vehicle.riDate == null ? 'Pending' : 'Completed' }}
+                {{ vehicle.status == null ? 'Pending' : 'Completed' }}
               </span>
-            </td>
+            </td> -->
             <td>{{ vehicle.location }}</td>
             <td>
-              <i class="fas fa-edit text-primary me-3 action-icon"
-                 (click)="editRecord(vehicle)"></i>
-              <i class="fas fa-trash-alt text-danger action-icon"
-                 (click)="deleteRecord()"></i>
+              <i
+                class="fas fa-edit text-primary me-3 action-icon"
+                (click)="editRecord(vehicle)"
+              ></i>
+              <i
+                class="fas fa-trash-alt text-danger action-icon"
+                (click)="deleteRecord(vehicle)"
+              ></i>
             </td>
           </tr>
         </tbody>
@@ -77,11 +99,15 @@
     <nav class="mt-3">
       <ul class="pagination justify-content-center flex-wrap">
         <li class="page-item" [class.disabled]="currentPage === 1">
-          <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+          <a class="page-link" (click)="changePage(currentPage - 1)"
+            >Previous</a
+          >
         </li>
-        <li class="page-item"
-            *ngFor="let p of [].constructor(totalPages); let page = index"
-            [class.active]="page + 1 === currentPage">
+        <li
+          class="page-item"
+          *ngFor="let p of [].constructor(totalPages); let page = index"
+          [class.active]="page + 1 === currentPage"
+        >
           <a class="page-link" (click)="changePage(page + 1)">{{ page + 1 }}</a>
         </li>
         <li class="page-item" [class.disabled]="currentPage === totalPages">

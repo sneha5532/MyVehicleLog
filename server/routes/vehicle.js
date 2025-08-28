@@ -12,10 +12,10 @@ router.get('/vehicle-list', async function (req, res) {
     const recordCount = vehicleList.length;
 
     res.status(200).send({
-      status: 200,
-      message: 'Vehicle list fetched successfully',
+      result: vehicleList,
       count: recordCount,
-      result: vehicleList
+      status: 200,
+      message: 'Vehicle list fetched successfully'
     });
   } catch (err) {
     console.error('Error retrieving vehicles:', err);
@@ -27,16 +27,50 @@ router.get('/vehicle-list', async function (req, res) {
   }
 });
 
-
+router.get('/Allvehicle-list', async function (req, res) {
+  const search = req.query.search || '';
+  const page = parseInt(req.query.page) || 1; // Default to page 1
+  const limit = parseInt(req.query.limit) || 10; // Default to 10 per page
+  const skip = (page - 1) * limit;
+ let query = {};
+  try {
+      if (search) {
+      query.$or = [
+        { vehicleNo: { $regex: search, $options: 'i' } },
+        { eNo: { $regex: search, $options: 'i' } },
+        { status: { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } }
+      ];
+    }
+    const vehicleList = await vehicleModel.find(query).skip(skip).limit(limit).exec();
+    const total = await vehicleModel.countDocuments(query);
+    res.status(200).send({
+      result: vehicleList,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalRecords: total,
+      status: 200,
+      message: 'Vehicle list fetched successfully'
+    });
+  } catch (err) {
+    console.error('Error retrieving vehicles:', err);
+    res.status(500).send({
+      status: 500,
+      message: 'Unable to retrieve vehicle list',
+      error: err.message
+    });
+  }
+});
 
 router.post('/add-vehicle',async function(req,res){
     try{
-    const {vehicleNo,eNo,surveyDate,riDate,location}= req.body;
+    const {vehicleNo,eNo,surveyDate,riDate,status,location}= req.body;
     let vehicleObj = new vehicleModel({
         vehicleNo: vehicleNo,
         eNo: eNo,
         surveyDate: surveyDate,
         riDate: riDate,
+        status: status,
         location: location
     })
    const savedVehicle = await vehicleObj.save();
@@ -69,6 +103,7 @@ router.get('/location-vehicle', async (req, res) => {
       query.$or = [
         { vehicleNo: { $regex: search, $options: 'i' } },
         { eNo: { $regex: search, $options: 'i' } },
+        { status: { $regex: search, $options: 'i' } },
         { location: { $regex: search, $options: 'i' } }
       ];
     }
@@ -84,6 +119,47 @@ router.get('/location-vehicle', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+
+router.put('/update-vehicle/:id', async (req, res) => {
+try {
+    const vehicleId = req.params.id;
+    const updateData = req.body;
+
+    const updatedVehicle = await vehicleModel.findByIdAndUpdate(
+      vehicleId,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedVehicle) {
+      return res.status(404).json({ message: 'Vehicle not found' });
+    }
+
+    res.status(200).json({ message: 'Vehicle updated successfully', vehicle: updatedVehicle });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error', error });
+  }
+});
+
+
+router.delete('/delete-vehicle/:id', async (req, res) => {
+  try {
+    const vehicleId = req.params.id;
+
+    const deletedVehicle = await vehicleModel.findByIdAndDelete(vehicleId);
+
+    if (!deletedVehicle) {
+      return res.status(404).json({ message: 'Vehicle not found' });
+    }
+
+    res.status(200).json({ message: 'Vehicle deleted successfully', vehicle: deletedVehicle });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error', error });
   }
 });
 

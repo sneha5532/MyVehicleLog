@@ -13,8 +13,15 @@ export class VehicleService {
   constructor(private http: HttpClient) {}
 
   getVehicleList() {
+    let url = environment.Vehicle_base_url + environment.Vehicle.Vehicle_List;
+    return this.http.get<{ result: any[] }>(url);
+  }
+
+  getAllVehicleList(page: number, limit: number, search: string = '') {
     let url =
-      environment.Vehicle_base_url + environment.Vehicle.All_Vehicle_List;
+      environment.Vehicle_base_url +
+      environment.Vehicle.All_vehicle_list +
+      `?page=${page}&limit=${limit}&search=${search}`;
     return this.http.get<{ result: any[] }>(url);
   }
 
@@ -23,7 +30,12 @@ export class VehicleService {
     return this.http.post(url, data);
   }
 
-  getVehiclesByLocation(location: string, page: number, limit: number, search: string = '') {
+  getVehiclesByLocation(
+    location: string,
+    page: number,
+    limit: number,
+    search: string = ''
+  ) {
     let url = environment.Vehicle_base_url + environment.Vehicle.Location;
     return this.http.get<any>(
       url + `?location=${location}&page=${page}&limit=${limit}&search=${search}`
@@ -40,12 +52,17 @@ export class VehicleService {
   }
 
   updateVehicle(id: string, data: any) {
-    let url = environment.Vehicle_base_url + environment.Vehicle.Update_Vehicle;
-    return this.http.put(url + `${id}`, data);
+    let url = `${environment.Vehicle_base_url}${environment.Vehicle.Update_Vehicle}/${id}`;
+    return this.http.put(url, data);
   }
 
-  searchVehicle(term: any){
-     let url = environment.Vehicle_base_url + environment.Vehicle.Search_Vehicle;
+  deleteVehicle(id: string) {
+    const url = `${environment.Vehicle_base_url}${environment.Vehicle.Delete_Vehicle}/${id}`;
+    return this.http.delete(url);
+  }
+
+  searchVehicle(term: any) {
+    let url = environment.Vehicle_base_url + environment.Vehicle.Search_Vehicle;
     return this.http.get(url + `?search=${term}`);
   }
 }
