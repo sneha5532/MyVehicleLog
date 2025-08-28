@@ -9,6 +9,7 @@ const vehicleModel = require('../model/vehicle.model');
 router.get('/vehicle-list', async function (req, res) {
   try {
     const vehicleList = await vehicleModel.find();
+    console.log("vehicleList",vehicleList);
     const recordCount = vehicleList.length;
 
     res.status(200).send({
