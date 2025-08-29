@@ -1,9 +1,9 @@
   export const environment = {
    production: false,
-   BASE_URL: 'http://localhost:3000',
-   Vehicle_base_url: 'http://localhost:3000/vehicle/',
-  //  BASE_URL: 'https://myvehiclelog.onrender.com',
-  //  Vehicle_base_url: 'https://myvehiclelog.onrender.com/vehicle/',
+  //  BASE_URL: 'http://localhost:3000',
+  //  Vehicle_base_url: 'http://localhost:3000/vehicle/',
+   BASE_URL: 'https://myvehiclelog.onrender.com',
+   Vehicle_base_url: 'https://myvehiclelog.onrender.com/vehicle/',
    Vehicle:{
       Vehicle_List: 'vehicle-list',
       All_vehicle_list: 'Allvehicle-list',
