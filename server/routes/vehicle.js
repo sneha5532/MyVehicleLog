@@ -125,9 +125,16 @@ router.get('/location-vehicle', async (req, res) => {
 
 
 router.put('/update-vehicle/:id', async (req, res) => {
-try {
+  try {
     const vehicleId = req.params.id;
     const updateData = req.body;
+
+    // Check RI_date and set status accordingly
+    if (updateData.riDate) {
+      updateData.status = 'completed';
+    } else {
+      updateData.status = 'pending';
+    }
 
     const updatedVehicle = await vehicleModel.findByIdAndUpdate(
       vehicleId,
@@ -139,7 +146,10 @@ try {
       return res.status(404).json({ message: 'Vehicle not found' });
     }
 
-    res.status(200).json({ message: 'Vehicle updated successfully', vehicle: updatedVehicle });
+    res.status(200).json({
+      message: 'Vehicle updated successfully',
+      vehicle: updatedVehicle
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error', error });
@@ -170,66 +180,74 @@ const upload = multer({ storage });
 
 // API to receive Excel file
 router.post('/upload-excel', upload.single('file'), async (req, res) => {
- try {
+  try {
     const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rawData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
 
-  const excelDateToJSDate = (serial) => {
-  if (!serial || isNaN(serial) || Number(serial) === 0) {
-    return null; // return null for empty, invalid, or zero serials
-  }
-  const utc_days = Math.floor(serial - 25569);
-  const utc_value = utc_days * 86400;
-  return new Date(utc_value * 1000);
-};
+    const excelDateToJSDate = (serial) => {
+      if (!serial || isNaN(serial) || Number(serial) === 0) {
+        return null;
+      }
+      const utc_days = Math.floor(serial - 25569);
+      const utc_value = utc_days * 86400;
+      return new Date(utc_value * 1000);
+    };
 
     const cleanedData = rawData
       .filter(row => row['Vehicle No.']) // skip empty rows
-      .map(row => ({
-        vehicleNo: (row['Vehicle No.'] || '').trim(),
-        eNo: (row['E.No.'] || '').trim(),
-        surveyDate: excelDateToJSDate(row['D.O. Survey']),
-        riDate: excelDateToJSDate(row['R.I. Date']),
-        location: (row['Location'] || '').trim()
-      }));
+      .map(row => {
+        const riDate = excelDateToJSDate(row['R.I. Date']);
+        const status = riDate ? 'completed' : 'pending'; // 👈 NEW LOGIC HERE
+
+        return {
+          vehicleNo: (row['Vehicle No.'] || '').trim(),
+          eNo: (row['E.No.'] || '').trim(),
+          surveyDate: excelDateToJSDate(row['D.O. Survey']),
+          riDate,
+          location: (row['Location'] || '').trim(),
+          status
+        };
+      });
 
     const bulkOps = cleanedData.map(row => ({
-  updateOne: {
-    filter: {
-      vehicleNo: row.vehicleNo,
-      surveyDate: row.surveyDate
-    },
-    update: {
-      $set: {
-        eNo: row.eNo,
-        riDate: row.riDate,
-        location: row.location,
-        updatedAt: new Date()
+      updateOne: {
+        filter: {
+          vehicleNo: row.vehicleNo,
+          surveyDate: row.surveyDate
+        },
+        update: {
+          $set: {
+            eNo: row.eNo,
+            riDate: row.riDate,
+            location: row.location,
+            status: row.status, // 👈 ADD STATUS HERE
+            updatedAt: new Date()
+          }
+        },
+        upsert: true
       }
-    },
-    upsert: true
-  }
-}));
+    }));
 
-const result = await vehicleModel.bulkWrite(bulkOps);
+    const result = await vehicleModel.bulkWrite(bulkOps);
 
-const message = [];
-if (result.upsertedCount > 0) {
-  message.push(`${result.upsertedCount} record(s) inserted.`);
-}
-if (result.modifiedCount > 0) {
-  message.push(`${result.modifiedCount} record(s) updated.`);
-}
-if (result.upsertedCount === 0 && result.modifiedCount === 0) {
-  message.push(`No changes were made. All records already exist.`);
-}
+    const message = [];
+    if (result.upsertedCount > 0) {
+      message.push(`${result.upsertedCount} record(s) inserted.`);
+    }
+    if (result.modifiedCount > 0) {
+      message.push(`${result.modifiedCount} record(s) updated.`);
+    }
+    if (result.upsertedCount === 0 && result.modifiedCount === 0) {
+      message.push(`No changes were made. All records already exist.`);
+    }
 
-res.status(200).json({
-  message: message.join(' '),
-  inserted: result.upsertedCount,
-  updated: result.modifiedCount
-});
+    res.status(200).json({
+      message: message.join(' '),
+      inserted: result.upsertedCount,
+      updated: result.modifiedCount
+    });
+
   } catch (err) {
     console.error('Upload failed:', err);
     res.status(500).json({ error: 'Upload failed' });
