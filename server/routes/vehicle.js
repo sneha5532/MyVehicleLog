@@ -28,14 +28,52 @@ router.get('/vehicle-list', async function (req, res) {
   }
 });
 
+// router.get('/Allvehicle-list', async function (req, res) {
+//   const search = req.query.search || '';
+//   const page = parseInt(req.query.page) || 1; // Default to page 1
+//   const limit = parseInt(req.query.limit) || 10; // Default to 10 per page
+//   const skip = (page - 1) * limit;
+//  let query = {};
+//   try {
+//       if (search) {
+//       query.$or = [
+//         { vehicleNo: { $regex: search, $options: 'i' } },
+//         { eNo: { $regex: search, $options: 'i' } },
+//         { status: { $regex: search, $options: 'i' } },
+//         { location: { $regex: search, $options: 'i' } }
+//       ];
+//     }
+//     const vehicleList = await vehicleModel.find(query).skip(skip).limit(limit).exec();
+//     const total = await vehicleModel.countDocuments(query);
+//     res.status(200).send({
+//       result: vehicleList,
+//       currentPage: page,
+//       totalPages: Math.ceil(total / limit),
+//       totalRecords: total,
+//       status: 200,
+//       message: 'Vehicle list fetched successfully'
+//     });
+//   } catch (err) {
+//     console.error('Error retrieving vehicles:', err);
+//     res.status(500).send({
+//       status: 500,
+//       message: 'Unable to retrieve vehicle list',
+//       error: err.message
+//     });
+//   }
+// });
+
+
 router.get('/Allvehicle-list', async function (req, res) {
   const search = req.query.search || '';
-  const page = parseInt(req.query.page) || 1; // Default to page 1
-  const limit = parseInt(req.query.limit) || 10; // Default to 10 per page
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
- let query = {};
+
   try {
-      if (search) {
+    // Step 1: Build search query
+    const query = {};
+    if (search) {
       query.$or = [
         { vehicleNo: { $regex: search, $options: 'i' } },
         { eNo: { $regex: search, $options: 'i' } },
@@ -43,16 +81,36 @@ router.get('/Allvehicle-list', async function (req, res) {
         { location: { $regex: search, $options: 'i' } }
       ];
     }
-    const vehicleList = await vehicleModel.find(query).skip(skip).limit(limit).exec();
-    const total = await vehicleModel.countDocuments(query);
-    res.status(200).send({
-      result: vehicleList,
-      currentPage: page,
-      totalPages: Math.ceil(total / limit),
-      totalRecords: total,
-      status: 200,
-      message: 'Vehicle list fetched successfully'
+
+    // Step 2: Fetch all matching records
+    const allRecords = await vehicleModel.find(query).lean();
+
+    // Step 3: Sort - pending first, completed second, unknown last
+    const getPriority = (status) => {
+      if (!status) return 2;
+      const s = status.toLowerCase();
+      if (s === 'pending') return 0;
+      if (s === 'completed') return 1;
+      return 2; // unknown or other statuses
+    };
+
+    const sortedRecords = allRecords.sort((a, b) => {
+      return getPriority(a.status) - getPriority(b.status);
     });
+
+    // Step 4: Paginate sorted results
+    const paginatedRecords = sortedRecords.slice(skip, skip + limit);
+
+    // Step 5: Send paginated response
+    res.status(200).send({
+      result: paginatedRecords,
+      currentPage: page,
+      totalPages: Math.ceil(sortedRecords.length / limit),
+      totalRecords: sortedRecords.length,
+      status: 200,
+      message: 'Vehicle list fetched successfully (pending first)',
+    });
+
   } catch (err) {
     console.error('Error retrieving vehicles:', err);
     res.status(500).send({
@@ -62,6 +120,7 @@ router.get('/Allvehicle-list', async function (req, res) {
     });
   }
 });
+
 
 router.post('/add-vehicle',async function(req,res){
     try{
@@ -91,37 +150,91 @@ router.post('/add-vehicle',async function(req,res){
 })
 
 
+// router.get('/location-vehicle', async (req, res) => {
+//   const location = req.query.location;
+//   const search = req.query.search || '';
+//   const page = parseInt(req.query.page) || 1; // Default to page 1
+//   const limit = parseInt(req.query.limit) || 10; // Default to 10 per page
+//   const skip = (page - 1) * limit;
+
+//   try {
+//     let query = { location: location };
+//      if (search) {
+//       query.$or = [
+//         { vehicleNo: { $regex: search, $options: 'i' } },
+//         { eNo: { $regex: search, $options: 'i' } },
+//         { status: { $regex: search, $options: 'i' } },
+//         { location: { $regex: search, $options: 'i' } }
+//       ];
+//     }
+//     const vehicles = await vehicleModel.find(query).skip(skip).limit(limit).exec();
+//     const total = await vehicleModel.countDocuments(query);
+//     res.json({
+//       vehiclesLocationList: vehicles,
+//       currentPage: page,
+//       totalPages: Math.ceil(total / limit),
+//       totalRecords: total,
+//       status: 200,
+//       message: 'Location wise Vehicle list fetched successfully',
+//     });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
 router.get('/location-vehicle', async (req, res) => {
   const location = req.query.location;
   const search = req.query.search || '';
-  const page = parseInt(req.query.page) || 1; // Default to page 1
-  const limit = parseInt(req.query.limit) || 10; // Default to 10 per page
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
   try {
-    let query = { location: location };
-     if (search) {
-      query.$or = [
-        { vehicleNo: { $regex: search, $options: 'i' } },
-        { eNo: { $regex: search, $options: 'i' } },
-        { status: { $regex: search, $options: 'i' } },
-        { location: { $regex: search, $options: 'i' } }
-      ];
-    }
-    const vehicles = await vehicleModel.find(query).skip(skip).limit(limit).exec();
-    const total = await vehicleModel.countDocuments(query);
-    res.json({
-      vehiclesLocationList: vehicles,
-      currentPage: page,
-      totalPages: Math.ceil(total / limit),
-      totalRecords: total,
-      status: 200,
-      message: 'Location wise Vehicle list fetched successfully',
+    // Step 1: Build search query
+    const matchQuery = {
+      location: location,
+      ...(search && {
+        $or: [
+          { vehicleNo: { $regex: search, $options: 'i' } },
+          { eNo: { $regex: search, $options: 'i' } },
+          { status: { $regex: search, $options: 'i' } },
+          { location: { $regex: search, $options: 'i' } }
+        ]
+      })
+    };
+
+    // Step 2: Fetch ALL matching records (NO skip/limit here)
+    let allRecords = await vehicleModel.find(matchQuery).lean();
+
+    // Step 3: Sort manually — pending first
+    const sortedRecords = allRecords.sort((a, b) => {
+      const getPriority = (status) => {
+        if (!status) return 2; // default last if null/undefined
+        return status.toLowerCase() === 'pending' ? 0 :
+               status.toLowerCase() === 'completed' ? 1 : 2;
+      };
+      return getPriority(a.status) - getPriority(b.status);
     });
+
+    // Step 4: Paginate manually (AFTER sort)
+    const paginatedRecords = sortedRecords.slice(skip, skip + limit);
+   console.log("paginatedRecords",paginatedRecords);
+    // Step 5: Return response
+    res.json({
+      vehiclesLocationList: paginatedRecords,
+      currentPage: page,
+      totalPages: Math.ceil(sortedRecords.length / limit),
+      totalRecords: sortedRecords.length,
+      status: 200,
+      message: 'Pending records are listed first with pagination.',
+    });
+
   } catch (err) {
+    console.error('Error in /location-vehicle:', err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 router.put('/update-vehicle/:id', async (req, res) => {
@@ -185,6 +298,7 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rawData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
 
+    // Convert Excel date to JS date
     const excelDateToJSDate = (serial) => {
       if (!serial || isNaN(serial) || Number(serial) === 0) {
         return null;
@@ -198,7 +312,7 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
       .filter(row => row['Vehicle No.']) // skip empty rows
       .map(row => {
         const riDate = excelDateToJSDate(row['R.I. Date']);
-        const status = riDate ? 'completed' : 'pending'; // 👈 NEW LOGIC HERE
+        const status = riDate ? 'completed' : 'pending';
 
         return {
           vehicleNo: (row['Vehicle No.'] || '').trim(),
@@ -206,9 +320,12 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
           surveyDate: excelDateToJSDate(row['D.O. Survey']),
           riDate,
           location: (row['Location'] || '').trim(),
-          status
+          status,
         };
       });
+
+    // DEBUG: Show what's going to be updated
+    console.log('Cleaned Data Preview:', cleanedData.slice(0, 5));
 
     const bulkOps = cleanedData.map(row => ({
       updateOne: {
@@ -221,13 +338,17 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
             eNo: row.eNo,
             riDate: row.riDate,
             location: row.location,
-            status: row.status, // 👈 ADD STATUS HERE
+            status: row.status, // ✅ Always explicitly set status
             updatedAt: new Date()
           }
         },
         upsert: true
       }
     }));
+
+    if (bulkOps.length === 0) {
+      return res.status(400).json({ message: 'No valid rows found in Excel file.' });
+    }
 
     const result = await vehicleModel.bulkWrite(bulkOps);
 
@@ -253,6 +374,7 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
     res.status(500).json({ error: 'Upload failed' });
   }
 });
+
 
 
 //search
