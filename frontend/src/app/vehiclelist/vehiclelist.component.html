@@ -36,7 +36,7 @@
 
     <!-- Responsive Borderless Table -->
     <div class="table-responsive shadow-sm rounded" #tableContainer>
-      <table class="table table-hover table-borderless align-middle mb-0">
+      <table class="table table-hover table-striped align-middle mb-0">
         <thead class="table-light">
           <tr>
             <th scope="col">Sr.No</th>
@@ -48,7 +48,7 @@
               Survey Date
             </th>
             <th (click)="sortData('riDate')" class="sortable">RI Date</th>
-            <th>Status</th>
+            <th (click)="sortData('status')">Status</th>
             <th>Location</th>
             <th scope="col">Actions</th>
           </tr>
