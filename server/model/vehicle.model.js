@@ -10,7 +10,7 @@ const vehicleSchema = mongoose.Schema({
   eNo: { type: String, default: null },
   surveyDate: { type: Date, required: true },
   riDate: { type: Date, default: null },
-  status: { type: String, enum: ['Completed','Pending'], default: 'Pending' },
+  status: { type: String, enum: ['completed','pending'], default: 'pending' },
   location: { type: String, default: 'Unknown' }
 });
 
